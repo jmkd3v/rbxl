@@ -31,7 +31,7 @@ def main():
             property_chunk = PropertyChunk(data)
             print(f"\t\tName: {property_chunk.name}")
             print(f"\t\tClass ID: {property_chunk.class_id}")
-            print(f"\t\tType: {property_chunk.type} [{property_chunk.type_id}]")
+            print(f"\t\tType: {property_chunk.type.name if property_chunk.type else '?'} [{property_chunk.type_id}]")
 
 
 if __name__ == '__main__':
