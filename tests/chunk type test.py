@@ -1,15 +1,15 @@
 from pathlib import Path
-import rbxl
-from rbxl.file import FileType
+from rbxl.file import FileType, from_bytes
 from rbxl.chunks import ChunkType
 from rbxl.chunks.property import PropertyChunk
+from rbxl.chunks.shared_string import SharedStringChunk
 
 
 def main():
     with open("./Baseplate.rbxl", "rb") as file:
         data = file.read()
 
-    file = rbxl.from_bytes(
+    file = from_bytes(
         data=data,
         file_type=FileType.binary
     )
@@ -32,6 +32,15 @@ def main():
             print(f"\t\tName: {property_chunk.name}")
             print(f"\t\tClass ID: {property_chunk.class_id}")
             print(f"\t\tType: {property_chunk.type.name if property_chunk.type else '?'} [{property_chunk.type_id}]")
+        elif chunk.header.type == ChunkType.shared_string:
+            shared_string_chunk = SharedStringChunk(data)
+            print(f"\t\tCount: {shared_string_chunk.count}")
+            print(f"\t\tStrings:")
+            for shared_string_index, shared_string in enumerate(shared_string_chunk.strings):
+                print(f"\t\t\tString {shared_string_index}:")
+                print(f"\t\t\t\tMD5: {shared_string.md5}")
+                print(f"\t\t\t\tLength: {len(shared_string.content)}")
+                print(f"\t\t\t\tContent: {shared_string.content!r}")
 
 
 if __name__ == '__main__':
