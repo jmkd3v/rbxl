@@ -87,3 +87,10 @@ class BinaryFile:
             if chunk_header.type == ChunkType.end:
                 # end chunks mark the end of the file. Break.
                 break
+
+
+def from_bytes(data: bytes, file_type: FileType):
+    if file_type == FileType.binary:
+        return BinaryFile(data)
+    else:
+        return BinaryFile(data)
