@@ -52,6 +52,7 @@ def main():
                 print(f"\t\tClass ID: {instance_chunk.class_id}")
                 print(f"\t\tIs service: {instance_chunk.is_service}")
                 print(f"\t\tInstance count: {instance_chunk.instance_count}")
+                print(f"\t\tReferents: {instance_chunk.referents}")
 
 
 if __name__ == '__main__':

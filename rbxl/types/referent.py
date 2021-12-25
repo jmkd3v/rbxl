@@ -6,8 +6,8 @@ class Referent:
     A Referent is a unique identifier that references a Roblox instance.
     """
 
-    def __init__(self, data: int):
-        self.data: int = data
+    def __init__(self, value: int):
+        self.value: int = value
 
     @classmethod
     def from_hex(cls, hex_data: str) -> Referent:
@@ -34,7 +34,7 @@ class Referent:
         Returns:
             A hexadecimal string of length 32.
         """
-        return f"{self.data:032x}"
+        return f"{self.value:032x}"
 
     @classmethod
     def from_bytes(cls, bytes_data: bytes) -> Referent:
@@ -60,7 +60,7 @@ class Referent:
         Returns:
             The Referent as bytes.
         """
-        return self.data.to_bytes(
+        return self.value.to_bytes(
             length=16,
             byteorder="big",
             signed=False

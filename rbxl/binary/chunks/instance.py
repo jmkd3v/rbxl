@@ -33,4 +33,8 @@ class InstanceChunk:
         self.referents: List[Referent] = []
 
         for _ in range(self.instance_count):
-            self.referents.append(Referent.from_hex(file.read(16)))
+            referent_bytes = file.read(16)
+            print(referent_bytes)
+            if len(referent_bytes) < 16:
+                break
+            self.referents.append(Referent.from_bytes(referent_bytes))
