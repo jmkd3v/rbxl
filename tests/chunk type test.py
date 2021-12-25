@@ -1,8 +1,7 @@
-from pathlib import Path
-from rbxl.file import FileType, from_bytes
-from rbxl.chunks import ChunkType
-from rbxl.chunks.property import PropertyChunk
-from rbxl.chunks.shared_string import SharedStringChunk
+from rbxl import FileType, from_bytes
+from rbxl import ChunkType
+from rbxl import PropertyChunk
+from rbxl import SharedStringChunk
 
 
 def main():

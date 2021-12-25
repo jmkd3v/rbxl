@@ -1,5 +1,5 @@
 import rbxl
-from rbxl.file import FileType
+from rbxl import FileType
 
 
 def main():
