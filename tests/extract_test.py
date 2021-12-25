@@ -1,14 +1,12 @@
-import rbxl
-from rbxl import FileType
+from rbxl.binary.file import from_bytes
 
 
 def main():
     with open("./Baseplate.rbxl", "rb") as file:
         data = file.read()
 
-    file = rbxl.from_bytes(
-        data=data,
-        file_type=FileType.binary
+    file = from_bytes(
+        data=data
     )
 
     for i, chunk in enumerate(file.chunks):

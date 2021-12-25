@@ -1,4 +1,6 @@
-from typing import Optional, Dict
+from typing import Dict
+
+from ..types.referent import Referent
 
 
 class Instance:
@@ -8,5 +10,4 @@ class Instance:
             class_name: str
     ):
         self.class_name = class_name
-        self.properties: Dict[str, Variant] = {}
-    
+        self.properties: Dict[str, bytes] = {}

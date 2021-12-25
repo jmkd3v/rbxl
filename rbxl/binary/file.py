@@ -1,43 +1,39 @@
-from typing import List
-from enum import Enum
+from io import BytesIO
+from typing import List, BinaryIO
+
 from .chunks import Chunk, ChunkHeader, ChunkType
 
 
-class FileType(Enum):
-    binary = "binary"
-    xml = "xml"
-
-
 class Header:
-    def __init__(self, data: bytes):
-        magic: bytes = data[:8]
+    def __init__(self, file: BinaryIO):
+        magic: bytes = file.read(8)
         assert magic == b"<roblox!"
 
-        signature: bytes = data[8:14]
+        signature: bytes = file.read(6)
         assert signature == b"\x89\xFF\x0D\x0A\x1A\x0A"
 
         self.magic: bytes = magic
         self.signature: bytes = signature
 
         self.version: int = int.from_bytes(
-            bytes=data[14:16],
+            bytes=file.read(2),
             byteorder="little",
             signed=False
         )
 
         self.class_count: int = int.from_bytes(
-            bytes=data[16:20],
+            bytes=file.read(4),
             byteorder="little",
             signed=True
         )
 
         self.instance_count: int = int.from_bytes(
-            bytes=data[20:24],
+            bytes=file.read(4),
             byteorder="little",
             signed=True
         )
 
-        self.reserved: bytes = data[24:32]
+        self.reserved: bytes = file.read(8)
 
 
 class BinaryFile:
@@ -45,24 +41,25 @@ class BinaryFile:
     Represents a Roblox binary file. These usually have the extension "rbxl" or "rbxm".
     """
 
-    def __init__(self, data: bytes):
-        self.data: bytes = data
-
+    def __init__(self, file: BinaryIO):
         # header is length 32
-        header_data = data[:32]
-        chunks_data = data[32:]
+        header_data = file.read(32)
 
-        self.header: Header(header_data)
+        with BytesIO() as header_io:
+            header_io.write(header_data)
+            header_io.seek(0)
+            self.header: Header = Header(header_io)
+
         self.chunks: List[Chunk] = []
 
-        chunk_index = 0
-        # while the index of the next chunk is not greater than the data length (sanity check)
-        while len(chunks_data) > chunk_index:
-            chunk_data_index = chunk_index + 16
-
+        while True:
             # header data fits snugly between the chunk start and the chunk data
-            chunk_header_data = chunks_data[chunk_index:chunk_data_index]
-            chunk_header = ChunkHeader(chunk_header_data)
+            chunk_header_data = file.read(16)
+
+            with BytesIO() as chunk_header_io:
+                chunk_header_io.write(chunk_header_data)
+                chunk_header_io.seek(0)
+                chunk_header = ChunkHeader(chunk_header_io)
 
             if chunk_header.compressed:
                 chunk_data_length = chunk_header.compressed_size
@@ -70,14 +67,8 @@ class BinaryFile:
                 chunk_data_length = chunk_header.uncompressed_size
 
             # the end of the data is its start point + its length. That makes sense
-            chunk_data_end = chunk_data_index + chunk_data_length
 
-            chunk_compressed_data = chunks_data[chunk_data_index:chunk_data_end]
-
-            if chunk_header.compressed:
-                chunk_index += 16 + chunk_header.compressed_size
-            else:
-                chunk_index += 16 + chunk_header.uncompressed_size
+            chunk_compressed_data = file.read(chunk_data_length)
 
             self.chunks.append(Chunk(
                 header=chunk_header,
@@ -89,8 +80,8 @@ class BinaryFile:
                 break
 
 
-def from_bytes(data: bytes, file_type: FileType):
-    if file_type == FileType.binary:
-        return BinaryFile(data)
-    else:
-        return BinaryFile(data)
+def from_bytes(data: bytes):
+    with BytesIO() as bytes_io:
+        bytes_io.write(data)
+        bytes_io.seek(0)
+        return BinaryFile(bytes_io)

@@ -1,4 +1,6 @@
 from enum import Enum
+from typing import BinaryIO
+
 import lz4.block
 
 
@@ -11,26 +13,26 @@ class ChunkType(Enum):
 
 
 class ChunkHeader:
-    def __init__(self, data: bytes):
+    def __init__(self, file: BinaryIO):
         # string is null-terminated, so we split at the null byte
-        self.name: str = data[:4].split(b"\x00")[0].decode("ascii")
+        self.name: str = file.read(4).split(b"\x00")[0].decode("ascii")
         self.type: ChunkType = ChunkType(self.name)
 
         self.compressed_size: int = int.from_bytes(
-            bytes=data[4:8],
+            bytes=file.read(4),
             byteorder="little",
             signed=False
         )
 
         self.uncompressed_size: int = int.from_bytes(
-            bytes=data[8:12],
+            bytes=file.read(4),
             byteorder="little",
             signed=False
         )
 
         self.compressed: bool = self.compressed_size != 0
 
-        self.reserved: bytes = data[12:16]
+        self.reserved: bytes = file.read(4)
 
 
 class Chunk:
