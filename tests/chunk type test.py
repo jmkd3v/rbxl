@@ -4,6 +4,7 @@ from rbxl.binary.file import from_bytes
 from rbxl.binary.chunks import ChunkType
 from rbxl.binary.chunks.shared_string import SharedStringChunk
 from rbxl.binary.chunks.property import PropertyChunk
+from rbxl.binary.chunks.instance import InstanceChunk
 
 
 def main():
@@ -45,6 +46,12 @@ def main():
                     print(f"\t\t\t\tMD5: {shared_string.md5}")
                     print(f"\t\t\t\tLength: {len(shared_string.content)}")
                     print(f"\t\t\t\tContent: {shared_string.content!r}")
+            elif chunk.header.type == ChunkType.instance:
+                instance_chunk = InstanceChunk(file)
+                print(f"\t\tClass name: {instance_chunk.class_name}")
+                print(f"\t\tClass ID: {instance_chunk.class_id}")
+                print(f"\t\tIs service: {instance_chunk.is_service}")
+                print(f"\t\tInstance count: {instance_chunk.instance_count}")
 
 
 if __name__ == '__main__':
