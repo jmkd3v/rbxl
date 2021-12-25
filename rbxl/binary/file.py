@@ -7,19 +7,21 @@ from .chunks import Chunk, ChunkHeader, ChunkType
 class Header:
     def __init__(self, file: BinaryIO):
         magic: bytes = file.read(8)
-        assert magic == b"<roblox!"
+        assert magic == b"<roblox!", "Invalid magic."
 
         signature: bytes = file.read(6)
-        assert signature == b"\x89\xFF\x0D\x0A\x1A\x0A"
+        assert signature == b"\x89\xFF\x0D\x0A\x1A\x0A", "Invalid signature."
 
-        self.magic: bytes = magic
-        self.signature: bytes = signature
-
-        self.version: int = int.from_bytes(
+        version: int = int.from_bytes(
             bytes=file.read(2),
             byteorder="little",
             signed=False
         )
+        assert version == 0, f"Unknown file version: {version}"
+
+        self.magic: bytes = magic
+        self.signature: bytes = signature
+        self.version: int = version
 
         self.class_count: int = int.from_bytes(
             bytes=file.read(4),
@@ -43,23 +45,13 @@ class BinaryFile:
 
     def __init__(self, file: BinaryIO):
         # header is length 32
-        header_data = file.read(32)
-
-        with BytesIO() as header_io:
-            header_io.write(header_data)
-            header_io.seek(0)
-            self.header: Header = Header(header_io)
+        self.header: Header = Header(file)
 
         self.chunks: List[Chunk] = []
 
         while True:
             # header data fits snugly between the chunk start and the chunk data
-            chunk_header_data = file.read(16)
-
-            with BytesIO() as chunk_header_io:
-                chunk_header_io.write(chunk_header_data)
-                chunk_header_io.seek(0)
-                chunk_header = ChunkHeader(chunk_header_io)
+            chunk_header = ChunkHeader(file)
 
             if chunk_header.compressed:
                 chunk_data_length = chunk_header.compressed_size
