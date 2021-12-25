@@ -2,9 +2,11 @@ from io import BytesIO
 
 from rbxl.binary.file import from_bytes
 from rbxl.binary.chunks import ChunkType
+
 from rbxl.binary.chunks.shared_string import SharedStringChunk
 from rbxl.binary.chunks.property import PropertyChunk
 from rbxl.binary.chunks.instance import InstanceChunk
+from rbxl.binary.chunks.parent import ParentChunk
 
 
 def main():
@@ -53,6 +55,11 @@ def main():
                 print(f"\t\tIs service: {instance_chunk.is_service}")
                 print(f"\t\tInstance count: {instance_chunk.instance_count}")
                 print(f"\t\tReferents: {instance_chunk.referents}")
+            elif chunk.header.type == ChunkType.parent:
+                parent_chunk = ParentChunk(file)
+                print(f"\t\tInstance count: {parent_chunk.instance_count}")
+                print(f"\t\tChild referents: {parent_chunk.child_referents}")
+                print(f"\t\tParent referents: {parent_chunk.parent_referents}")
 
 
 if __name__ == '__main__':

@@ -118,3 +118,5 @@ dmypy.json
 
 # jmk
 jmkdev_tests/
+
+.DS_Store

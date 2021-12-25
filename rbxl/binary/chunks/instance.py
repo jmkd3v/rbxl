@@ -1,6 +1,7 @@
 from typing import BinaryIO, List
 
 from ...types.referent import Referent
+from ..interleaving import deinterleave_int
 
 
 class InstanceChunk:
@@ -31,10 +32,10 @@ class InstanceChunk:
         )
 
         self.referents: List[Referent] = []
+        self.markers: List[bool] = []
 
-        for _ in range(self.instance_count):
-            referent_bytes = file.read(16)
-            print(referent_bytes)
-            if len(referent_bytes) < 16:
-                break
-            self.referents.append(Referent.from_bytes(referent_bytes))
+        self.referents = Referent.from_ints_accumulated(deinterleave_int(
+            data=file.read(4 * self.instance_count)
+        ))
+
+        assert len(self.referents) == self.instance_count, "Referent count did not match instance count."

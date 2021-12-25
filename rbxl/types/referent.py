@@ -1,4 +1,5 @@
 from __future__ import annotations
+from typing import List
 
 
 class Referent:
@@ -50,7 +51,7 @@ class Referent:
         return cls(int.from_bytes(
             bytes=bytes_data,
             byteorder="big",
-            signed=False
+            signed=True
         ))
 
     def to_bytes(self) -> bytes:
@@ -63,5 +64,26 @@ class Referent:
         return self.value.to_bytes(
             length=16,
             byteorder="big",
-            signed=False
+            signed=True
         )
+
+    @classmethod
+    def from_ints_accumulated(cls, ints_list: List[int]) -> List[Referent]:
+        """
+        Gets multiple Referents from a list of accumulated Referent bytes.
+        """
+        referents: List[Referent] = [Referent(ints_list[0])]
+
+        for int_data in ints_list[1:]:
+            referents.append(Referent(int_data + referents[len(referents) - 1].value))
+
+        return referents
+
+    def __eq__(self, another):
+        return hasattr(another, "value") and another.value == self.value
+
+    def __hash__(self):
+        return hash(self.value)
+
+    def __repr__(self):
+        return f"<{self.__class__.__name__} value={self.value}>"
