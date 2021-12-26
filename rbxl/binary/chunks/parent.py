@@ -24,9 +24,6 @@ class ParentChunk:
         a = file.read(self.instance_count * 4)
         b = file.read(self.instance_count * 4)
 
-        print(a)
-        print(b)
-
         self.child_referents: List[Referent] = Referent.from_ints_accumulated(deinterleave_int(a))
         self.parent_referents: List[Referent] = Referent.from_ints_accumulated(deinterleave_int(b))
 

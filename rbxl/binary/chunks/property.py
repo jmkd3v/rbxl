@@ -30,3 +30,5 @@ class PropertyChunk:
             self.type = DataType(self.type_id)
         except ValueError:
             self.type = None
+
+        self.raw_value: bytes = file.read()

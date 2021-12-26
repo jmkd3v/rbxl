@@ -71,9 +71,9 @@ class BinaryFile:
                 # end chunks mark the end of the file. Break.
                 break
 
-
-def from_bytes(data: bytes):
-    with BytesIO() as bytes_io:
-        bytes_io.write(data)
-        bytes_io.seek(0)
-        return BinaryFile(bytes_io)
+    @classmethod
+    def from_bytes(cls, data: bytes):
+        with BytesIO() as bytes_io:
+            bytes_io.write(data)
+            bytes_io.seek(0)
+            return cls(bytes_io)
