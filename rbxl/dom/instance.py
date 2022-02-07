@@ -22,6 +22,9 @@ class Instance:
     def get_property(self, name: str):
         return self._properties[name]
 
+    def get_properties(self):
+        return self._properties.items()
+
     def __eq__(self, another):
         return hasattr(another, "referent") and another.referent == self.referent
 
@@ -29,4 +32,4 @@ class Instance:
         return hash(self.referent)
 
     def __repr__(self):
-        return f"<{self.__class__.__name__} referent={self.referent.value}>"
+        return f"<{self.__class__.__name__} class_name={self.class_name} referent={self.referent.value}>"
