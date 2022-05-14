@@ -1,31 +1,37 @@
-from typing import BinaryIO, List
+from __future__ import annotations
+from typing import List, TYPE_CHECKING
 
+from ...stream import RbxStream
 from ...types.referent import Referent
-from ..interleaving import deinterleave_int
+
+if TYPE_CHECKING:
+    from ..file import BinaryFile
 
 
 class ParentChunk:
-    def __init__(self, file: BinaryIO):
-        version: int = int.from_bytes(
-            bytes=file.read(1),
-            byteorder="little",
-            signed=False
-        )
+    def __init__(self, file: BinaryFile, stream: RbxStream):
+        version: int = stream.read_int(1)
         assert version == 0, "Unknown version."
 
         self.version: int = version
 
-        self.instance_count: int = int.from_bytes(
-            bytes=file.read(4),
-            byteorder="little",
-            signed=False
-        )
+        self.instance_count: int = stream.read_int(4)
 
-        a = file.read(self.instance_count * 4)
-        b = file.read(self.instance_count * 4)
+        self.child_referents: List[Referent] = Referent.from_ints_accumulated(stream.read_interleaved_ints(
+            length=4,
+            count=self.instance_count,
+            byteorder="big",
+            signed=False,
+            transform=True
+        ))
 
-        self.child_referents: List[Referent] = Referent.from_ints_accumulated(deinterleave_int(a))
-        self.parent_referents: List[Referent] = Referent.from_ints_accumulated(deinterleave_int(b))
+        self.parent_referents: List[Referent] = Referent.from_ints_accumulated(stream.read_interleaved_ints(
+            length=4,
+            count=self.instance_count,
+            byteorder="big",
+            signed=False,
+            transform=True
+        ))
 
-        assert len(self.child_referents) == self.instance_count, "Child referent count did not match instance count."
-        assert len(self.parent_referents) == self.instance_count, "Parent referent count did not match instance count."
+        assert len(self.child_referents) == self.instance_count, "child referent count did not match instance count"
+        assert len(self.parent_referents) == self.instance_count, "parent referent count did not match instance count"

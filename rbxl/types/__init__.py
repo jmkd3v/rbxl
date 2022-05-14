@@ -28,4 +28,6 @@ class DataType(IntEnum):
     color3uint8 = 0x1a
     int64 = 0x1b
     sharedstring = 0x1c
+    bytecode = 0x1d
     optionalcoordinateframe = 0x1e
+    uniqueid = 0x1f

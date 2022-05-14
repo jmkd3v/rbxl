@@ -1,41 +1,19 @@
 from io import BytesIO
-from typing import List, BinaryIO
 
-from .chunks import Chunk, ChunkHeader, ChunkType
+from .chunks import Chunk, ChunkType
+from ..stream import RbxStream
 
 
 class Header:
-    def __init__(self, file: BinaryIO):
-        magic: bytes = file.read(8)
-        assert magic == b"<roblox!", "Invalid magic."
+    def __init__(self, stream: RbxStream):
+        assert stream.read(8) == b"<roblox!", "invalid magic."
+        assert stream.read(6) == b"\x89\xFF\x0D\x0A\x1A\x0A", "invalid signature"
+        assert stream.read_int(2) == 0, f"unknown file version"
 
-        signature: bytes = file.read(6)
-        assert signature == b"\x89\xFF\x0D\x0A\x1A\x0A", "Invalid signature."
+        self.class_count: int = stream.read_int(4)
+        self.instance_count: int = stream.read_int(4)
 
-        version: int = int.from_bytes(
-            bytes=file.read(2),
-            byteorder="little",
-            signed=False
-        )
-        assert version == 0, f"Unknown file version: {version}"
-
-        self.magic: bytes = magic
-        self.signature: bytes = signature
-        self.version: int = version
-
-        self.class_count: int = int.from_bytes(
-            bytes=file.read(4),
-            byteorder="little",
-            signed=True
-        )
-
-        self.instance_count: int = int.from_bytes(
-            bytes=file.read(4),
-            byteorder="little",
-            signed=True
-        )
-
-        self.reserved: bytes = file.read(8)
+        stream.skip(8)
 
 
 class BinaryFile:
@@ -43,37 +21,30 @@ class BinaryFile:
     Represents a Roblox binary file. These usually have the extension "rbxl" or "rbxm".
     """
 
-    def __init__(self, file: BinaryIO):
+    def __init__(self, stream: RbxStream):
         # header is length 32
-        self.header: Header = Header(file)
+        self.header: Header = Header(stream)
 
-        self.chunks: List[Chunk] = []
+        self.chunks: list[Chunk] = []
+        self.class_id_to_chunk: dict[int, Chunk] = {}
 
         while True:
-            # header data fits snugly between the chunk start and the chunk data
-            chunk_header = ChunkHeader(file)
+            chunk = Chunk(self, stream)
 
-            if chunk_header.compressed:
-                chunk_data_length = chunk_header.compressed_size
-            else:
-                chunk_data_length = chunk_header.uncompressed_size
-
-            # the end of the data is its start point + its length. That makes sense
-
-            chunk_compressed_data = file.read(chunk_data_length)
-
-            self.chunks.append(Chunk(
-                header=chunk_header,
-                compressed_data=chunk_compressed_data
-            ))
-
-            if chunk_header.type == ChunkType.end:
+            if chunk.type == ChunkType.instance:
+                self.class_id_to_chunk[chunk.contents.class_id] = chunk
+            elif chunk.type == ChunkType.end:
                 # end chunks mark the end of the file. Break.
                 break
+
+            self.chunks.append(chunk)
+
+        print(self.class_id_to_chunk)
 
     @classmethod
     def from_bytes(cls, data: bytes):
         with BytesIO() as bytes_io:
             bytes_io.write(data)
             bytes_io.seek(0)
-            return cls(bytes_io)
+            stream = RbxStream(stream=bytes_io)
+            return cls(stream)
